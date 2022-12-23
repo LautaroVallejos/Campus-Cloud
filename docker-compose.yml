@@ -1,0 +1,56 @@
+version: "3"
+services:
+  strapi:
+    container_name: campus-backend
+    build: .
+    image: campus-backend:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_CLIENT: postgresql
+      DATABASE_HOST: campus-db.cowjc3jr865r.sa-east-1.rds.amazonaws.com
+      DATABASE_NAME: campus-db
+      DATABASE_USERNAME: lvallejos
+      DATABASE_PORT: 5432
+      JWT_SECRET: 9iba/qBXsGNT1NHncEKRKw==
+      ADMIN_JWT_SECRET: TwRAKPZ6Tsr1ne0J9SfnCg==
+      DATABASE_PASSWORD: notSecureChangeMe2511
+      NODE_ENV: ${NODE_ENV}
+    volumes:
+      - ./config:/opt/app/config
+      - ./src:/opt/app/src
+      - ./package.json:/opt/package.json
+      - ./package-json.lock:/opt/package-json.lock # Replace with package-lock.json if using npm
+      - ./.env:/opt/app/.env
+    ports:
+      - "1337:1337"
+    networks:
+      - strapi
+    depends_on:
+      - strapiDB
+
+  strapiDB:
+    image: postgres:12.0-alpine
+    container_name: strapi-db
+    platform: linux/amd64 #for platform error on Apple M1 chips
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_USER: lvallejos
+      POSTGRES_PASSWORD: notSecureChangeMe2511
+      POSTGRES_DB: campus-db
+    volumes:
+      - strapi-data:/var/lib/postgresql/data/ #using a volume
+      #- ./data:/var/lib/postgresql/data/ # if you want to use a bind folder
+    ports:
+      - "5432:5432"
+    networks:
+      - strapi
+
+volumes:
+    strapi-data:
+
+networks:
+  strapi:
+    name: Strapi
+    driver: bridge
